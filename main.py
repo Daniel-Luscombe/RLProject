@@ -13,4 +13,8 @@ agent = dqn.DQN(
     lr=1e-4
 )
 
-agent.train(env, episodes=100, render=render)
+agent.train(env, episodes=1000, render=render)
+#agent.load_model()
+#agent.play(env, episodes=1000)
+
+env.close()

@@ -27,7 +27,7 @@ class ReplayBuffer:
 class DQN:
     def __init__(self, state_shape, n_actions,
                  gamma=0.99, epsilon=1.0, lr=1e-4,
-                 batch_size=32, buffer_size=50000):
+                 batch_size=64, buffer_size=50000):
         self.n_actions = n_actions
         self.gamma = gamma              # discount factor
         self.epsilon = epsilon          # exploration probability
@@ -44,7 +44,7 @@ class DQN:
         - Otherwise: choose action with highest Q-value
         """
         if random.random() < self.epsilon:
-            return random.choices([1, 2, 3, 4, 5], weights=[0.00, 0.2, 0.2, 0.6, 0.0])[0] 
+            return random.choices([0, 1, 2, 3, 4], weights=[1.5, 2.0, 2.0, 2.5, 2.0])[0] 
         q_vals = self.model.predict(state[np.newaxis], verbose=0)
         return int(np.argmax(q_vals[0]))
 
@@ -73,7 +73,7 @@ class DQN:
 
         self.model.fit(states, q_targets, epochs=1, verbose=0)
 
-    def train(self, env, episodes=1, render=False, max_steps=100):
+    def train(self, env, episodes=1, render=False, max_steps=500):
         #loading the log
         rewards = []
         start_ep = 0
@@ -100,10 +100,13 @@ class DQN:
                 action = self.get_action(state)
                 next_state, reward, done, _, _ = env.step(action)
                 self.remember(state, action, reward, next_state, done)
-                self.train_step()
+                #Train every 3 steps
+                if step % 5 == 0:
+                    self.train_step()
                 state = next_state
                 ep_reward += reward
                 step += 1
+                #Render the environment every 10 steps
                 if render and step % 10 == 0:
                     env.render()  
                 print(f"Step {step}, Action: {action}, Reward: {reward:.1f}, Epsilon: {self.epsilon:.2f}")
@@ -112,14 +115,33 @@ class DQN:
             
             #implementing epsilon decay, to ensure model uses its training to learn
             if self.epsilon > 0.05 and current_ep % 5 == 0:
-                self.epsilon *= 0.98
+                self.epsilon *= 0.95
             
             if current_ep % 10 == 0:
                 self.save_model()
-                print(f"Model saved at episode {ep+1}")
+                print(f"Model saved at episode {current_ep}")
                 with open(self.log_path, 'w', newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(["Episode", "Reward"])
                     for i, r in enumerate(rewards):
                         writer.writerow([i, r])
-                    print(f"Log saved at episode {ep+1}")
+                    print(f"Log saved at episode {current_ep}")
+                    
+    def play(self, env, episodes=1, max_steps=1000):
+        original = self.epsilon
+        self.epsilon = 0.0
+        
+        for ep in range(episodes):
+            state, _ = env.reset()
+            done = False
+            step = 0
+            ep_reward = 0
+            while not done and step < max_steps:
+                action = self.get_action(state)
+                next_state, reward, done, _, _ = env.step(action)             
+                env.render()
+                state = next_state
+                ep_reward += reward
+                step += 1
+            print(f"Episode {ep}, Total Reward: {ep_reward:.1f}")
+        self.epsilon = original
