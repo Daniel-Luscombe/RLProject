@@ -44,7 +44,7 @@ class DQN:
         - Otherwise: choose action with highest Q-value
         """
         if random.random() < self.epsilon:
-            return random.randint(0, self.n_actions - 1)
+            return random.choices([1, 2, 3, 4, 5], weights=[0.00, 0.2, 0.2, 0.6, 0.0])[0] 
         q_vals = self.model.predict(state[np.newaxis], verbose=0)
         return int(np.argmax(q_vals[0]))
 
@@ -73,7 +73,7 @@ class DQN:
 
         self.model.fit(states, q_targets, epochs=1, verbose=0)
 
-    def train(self, env, episodes=1, render=False, max_steps=1000, ):
+    def train(self, env, episodes=1, render=False, max_steps=100):
         #loading the log
         rewards = []
         start_ep = 0
@@ -84,7 +84,7 @@ class DQN:
                 for row in reader:
                     rewards.append(float(row[1]))
                 start_ep = len(rewards)
-                print("Resuming from episode", start_ep+1)
+                print("Resuming from episode", start_ep)
                 #loading the model          
                 if os.path.exists(self.model_path):
                     self.load_model()
@@ -104,11 +104,15 @@ class DQN:
                 state = next_state
                 ep_reward += reward
                 step += 1
-                if render:
+                if render and step % 10 == 0:
                     env.render()  
                 print(f"Step {step}, Action: {action}, Reward: {reward:.1f}, Epsilon: {self.epsilon:.2f}")
             rewards.append(ep_reward)
-            print(f"Episode {ep+1}, Total Reward: {ep_reward:.1f}")
+            print(f"Episode {current_ep}, Total Reward: {ep_reward:.1f}, Epsilon: {self.epsilon:.2f}")
+            
+            #implementing epsilon decay, to ensure model uses its training to learn
+            if self.epsilon > 0.05 and current_ep % 5 == 0:
+                self.epsilon *= 0.98
             
             if current_ep % 10 == 0:
                 self.save_model()
