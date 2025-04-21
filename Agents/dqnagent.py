@@ -44,7 +44,7 @@ class DQN:
         - Otherwise: choose action with highest Q-value
         """
         if random.random() < self.epsilon:
-            return random.choices([0, 1, 2, 3, 4], weights=[0.0, 3, 3, 3, 1.0])[0] 
+            return random.choices([0, 1, 2, 3, 4], weights=[0.0, 2.5, 2.5, 3, 2.0])[0] 
         q_vals = self.model.predict(state[np.newaxis], verbose=0)
         return int(np.argmax(q_vals[0]))
 
@@ -114,8 +114,8 @@ class DQN:
             print(f"Episode {current_ep}, Total Reward: {ep_reward:.1f}, Epsilon: {self.epsilon:.2f}")
             
             #implementing epsilon decay, to ensure model uses its training to learn
-            if self.epsilon > 0.05:
-                self.epsilon *= 0.97
+            if self.epsilon > 0.1:
+                self.epsilon *= 0.99
             
             if current_ep % 10 == 0:
                 self.save_model()
