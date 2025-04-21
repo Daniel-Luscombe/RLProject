@@ -107,7 +107,7 @@ class DQN:
                 state = next_state
                 ep_reward += reward
                 step += 1
-                if step > 50 and ep_reward < 10:
+                if step > 50 and ep_reward < -30:
                     print(f"Early stop due to poor reward ({ep_reward:.1f})")
                     break
                 #Render the environment every 100 steps

@@ -8,7 +8,7 @@ class DiscreteCarRacingActions(gym.ActionWrapper):
         [0.0, 0.0, 0.0],   # lift
         [-1.0, 0.0, 0.0],  # left
         [1.0, 0.0, 0.0],   # right
-        [0.0, 1.0, 0.0],   # accellerate
+        [0.0, 1.0, 0.0],   # accelerate
         [0.0, 0.0, 0.1],   # brake
     ], dtype=np.float32)
 
