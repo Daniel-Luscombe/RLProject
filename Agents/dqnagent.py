@@ -26,7 +26,7 @@ class ReplayBuffer:
 
 class DQN:
     def __init__(self, state_shape, n_actions,
-                 gamma=0.99, epsilon=1.0, lr=1e-4,
+                 gamma=0.99, epsilon=1.0, lr=1e-3,
                  batch_size=64, buffer_size=50000):
         self.n_actions = n_actions
         self.gamma = gamma              # discount factor
@@ -44,7 +44,7 @@ class DQN:
         - Otherwise: choose action with highest Q-value
         """
         if random.random() < self.epsilon:
-            return random.choices([0, 1, 2, 3, 4], weights=[1.5, 2.0, 2.0, 2.5, 2.0])[0] 
+            return random.choices([0, 1, 2, 3, 4], weights=[0.0, 3, 3, 3, 1.0])[0] 
         q_vals = self.model.predict(state[np.newaxis], verbose=0)
         return int(np.argmax(q_vals[0]))
 
@@ -100,22 +100,22 @@ class DQN:
                 action = self.get_action(state)
                 next_state, reward, done, _, _ = env.step(action)
                 self.remember(state, action, reward, next_state, done)
-                #Train every 3 steps
-                if step % 5 == 0:
+                #Train every 5 steps
+                if step % 3 == 0:
                     self.train_step()
                 state = next_state
                 ep_reward += reward
                 step += 1
-                #Render the environment every 10 steps
-                if render and step % 10 == 0:
+                #Render the environment every 100 steps
+                if render and step % 100 == 0:
                     env.render()  
-                print(f"Step {step}, Action: {action}, Reward: {reward:.1f}, Epsilon: {self.epsilon:.2f}")
+                #print(f"Step {step}, Action: {action}, Reward: {reward:.1f}, Epsilon: {self.epsilon:.2f}")
             rewards.append(ep_reward)
             print(f"Episode {current_ep}, Total Reward: {ep_reward:.1f}, Epsilon: {self.epsilon:.2f}")
             
             #implementing epsilon decay, to ensure model uses its training to learn
-            if self.epsilon > 0.05 and current_ep % 5 == 0:
-                self.epsilon *= 0.95
+            if self.epsilon > 0.05:
+                self.epsilon *= 0.97
             
             if current_ep % 10 == 0:
                 self.save_model()

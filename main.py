@@ -2,7 +2,7 @@ import gymnasium as gym
 import Agents.dqnagent as dqn
 import Environments.discreteCarRacing as denv
 
-render = False
+render = True
 base_env = gym.make("CarRacing-v3", render_mode="human" if render else "rgb_array")
 env = denv.DiscreteCarRacingObservations(denv.DiscreteCarRacingActions(base_env))
 
