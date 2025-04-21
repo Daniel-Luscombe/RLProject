@@ -9,7 +9,7 @@ env = denv.DiscreteCarRacingObservations(denv.DiscreteCarRacingActions(base_env)
 agent = dqn.DQN(
     state_shape=(48, 48, 3),
     n_actions=env.action_space.n,
-    epsilon=1.0,
+    epsilon=0.2,
     lr=1e-4
 )
 

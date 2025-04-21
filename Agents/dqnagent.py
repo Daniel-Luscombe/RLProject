@@ -26,12 +26,13 @@ class ReplayBuffer:
 
 class DQN:
     def __init__(self, state_shape, n_actions,
-                 gamma=0.99, epsilon=1.0, lr=1e-3,
+                 gamma=0.99, epsilon=1.0, lr=1e-4,
                  batch_size=64, buffer_size=50000):
         self.n_actions = n_actions
         self.gamma = gamma              # discount factor
         self.epsilon = epsilon          # exploration probability
         self.batch_size = batch_size
+        self.lr = lr                    # learning rate
         self.model = cnn.build_model(state_shape, n_actions, lr)
         self.memory = ReplayBuffer(buffer_size)
         self.model_path = "Experiments/dqn_model.keras"
@@ -44,7 +45,7 @@ class DQN:
         - Otherwise: choose action with highest Q-value
         """
         if random.random() < self.epsilon:
-            return random.choices([0, 1, 2, 3, 4], weights=[0.0, 2.5, 2.5, 3, 2.0])[0] 
+            return random.choices([0, 1, 2, 3, 4], weights=[0, 2.5, 2.5, 3, 2])[0] 
         q_vals = self.model.predict(state[np.newaxis], verbose=0)
         return int(np.argmax(q_vals[0]))
 
@@ -55,7 +56,7 @@ class DQN:
         cnn.save_model(self.model, self.model_path)
 
     def load_model(self):
-        self.model = cnn.load_model(self.model_path, lr=1e-4)
+        self.model = cnn.load_model(self.model_path, lr=self.lr)
         
     def train_step(self):
         if len(self.memory) < self.batch_size:
@@ -73,7 +74,7 @@ class DQN:
 
         self.model.fit(states, q_targets, epochs=1, verbose=0)
 
-    def train(self, env, episodes=1, render=False, max_steps=500):
+    def train(self, env, episodes=1, render=False, max_steps=1000):
         #loading the log
         rewards = []
         start_ep = 0
@@ -106,6 +107,9 @@ class DQN:
                 state = next_state
                 ep_reward += reward
                 step += 1
+                if step > 50 and ep_reward < -25:
+                    print(f"Early stop due to poor reward ({ep_reward:.1f})")
+                    break
                 #Render the environment every 100 steps
                 if render and step % 100 == 0:
                     env.render()  
@@ -114,8 +118,8 @@ class DQN:
             print(f"Episode {current_ep}, Total Reward: {ep_reward:.1f}, Epsilon: {self.epsilon:.2f}")
             
             #implementing epsilon decay, to ensure model uses its training to learn
-            if self.epsilon > 0.1:
-                self.epsilon *= 0.99
+            #if self.epsilon > 0.1:
+            #    self.epsilon *= 0.99
             
             if current_ep % 10 == 0:
                 self.save_model()
