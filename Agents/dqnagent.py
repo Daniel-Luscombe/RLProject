@@ -74,8 +74,9 @@ class DQN:
 
         self.model.fit(states, q_targets, epochs=1, verbose=0)
 
-    def train(self, env, episodes=1, render=False, max_steps=1000):
+    def train(self, env, episodes=1, render=False, max_steps=2000):
         #loading the log
+        starting_epsilon = self.epsilon
         rewards = []
         start_ep = 0
         if os.path.exists(self.log_path):
